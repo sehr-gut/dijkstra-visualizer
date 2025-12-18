@@ -38,8 +38,9 @@ public class Dijkstra {
         /* Reset sequence start */
         reset();
         /* Reset sequence end */
-
+        isRunning = true;
         f.setVisible(true);
+
         start.minDist = 0; // starting node has distance 0
         Heap<Node> pq = new Heap<Node>((a, b) -> {
             // min heap implementation
@@ -56,6 +57,7 @@ public class Dijkstra {
         // reset config
         reset();
         f.setVisible(true);
+        isRunning = true;
         start.minDist = 0; // starting node has distance 0
         Heap<Node> pq = new Heap<Node>((a, b) -> {
             // min heap implementation
@@ -63,9 +65,19 @@ public class Dijkstra {
         });
 
         pq.insert(start); // insert the initial node
-        Timer t = new Timer(2000, e -> {
+        Timer t = new Timer(600, null);
+        t.addActionListener(e -> {
+            if (pq.isEmpty()) {
+                t.stop();
+                isRunning = false;
+                return;
+            }
             step(pq, end);
+            if(!isRunning) {
+                t.stop();
+            }
         });
+        t.start();
 
     }
     
@@ -82,20 +94,21 @@ public class Dijkstra {
     }
     // separate step from the loop for individual use in the future
     private void step(Heap<Node> pq, Node end) {
-        u = pq.pop(); // current node
-        u.state = NodeState.CLOSED;
+       u = pq.pop(); // current node
+       u.state = NodeState.CLOSED;
         
         if(u == end) {
             // return if the destination is reached
             isRunning = false;
             reconstructPath(end);  
+            parent.repaint();
             return;
         }
         for(Edge e : outboundEdge(u)) {
             Node v = e.dest; // check the neighbors of the current node
             if(v == u) v = e.source;
             // if the destination is the source
-            if(paths.contains(v)) continue;
+            if(v.state == NodeState.CLOSED) continue;
             // calculating the cost when using this node to traverse
             int distPassingU = u.minDist + e.weight;
 
@@ -128,20 +141,22 @@ public class Dijkstra {
     public void reconstructPath(Node target) {
         // return the minimum path to get to the distination
         Node current = target;
+        for (Node n : nodes) {
+            if (n.state == NodeState.OPEN) {
+                n.state = NodeState.CLOSED; // or NodeState.UNVISITED to make them red
+            }
+        }
         while(current.previous != null) {
             current.state = NodeState.PATH;
             Edge pathEdge = getEdge(current, current.previous);
             // path traversal
-            
             if(pathEdge != null) {
                 paths.add(pathEdge);
             }
             current = current.previous;  
-            f.updateTable(nodes, current);
-
         }
         current.state = NodeState.PATH;
-        parent.repaint();
+        f.updateTable(nodes, current);
     }
     private Edge getEdge(Node src, Node dest) {
         for (Edge e : edges) {
