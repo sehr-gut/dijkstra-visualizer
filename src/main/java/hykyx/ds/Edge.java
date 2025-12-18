@@ -13,7 +13,7 @@ package hykyx.ds;
 public class Edge {
     Node source;
     Node dest;
-    int weight;
+    int weight; 
     public Edge(Node source, 
             Node destination, int weight) {
         this.source = source;

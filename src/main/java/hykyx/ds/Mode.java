@@ -9,5 +9,5 @@ package hykyx.ds;
  * @author Franklin Xam
  */
 public enum Mode {
-    INSERT, EDGE, RUN, DONE, VIEW
+    INSERT, EDGE, VIEW
 }

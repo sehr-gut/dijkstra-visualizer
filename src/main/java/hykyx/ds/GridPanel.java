@@ -4,77 +4,55 @@
  */
 package hykyx.ds;
 
-import hykyx.priority_queue.Heap;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-
+import java.awt.RenderingHints;
 /**
  *
  * @author Franklin Xam
  */
 public class GridPanel extends javax.swing.JPanel {
-    private final List<Edge> edges = new ArrayList<>(); // handling the edge list of the graph
-    private final List<Node> nodes = new ArrayList<>(); // handling the vertex list of the grap
+    private final List<Edge> edges = new ArrayList<>(); // handling the edge 
+                                                        // list of the graph
+    
+    private final List<Node> nodes = new ArrayList<>(); // handling the vertex
+                                                        // list of the graph
     private  Set<Edge> paths = new HashSet<>();
+            
+            
+    // constants
     private final int nodeRadius = 20;
     private final int cellSize = 5;
-    private Mode opMode = Mode.VIEW;
+
     private final Random rnd = new Random();
-    private Node source, dest;
-    private boolean ready = false;
+    
+    
+    // operation variables
+    protected Mode opMode = Mode.VIEW;
+    protected Node source, dest;
+    protected boolean ready = false;
+    
+    
     /**
      * Creates new form GridPanel
      */
     public GridPanel() {
         initComponents();
         jLabel1.setText("" + opMode);
-        MouseAdapter ml = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                handleMouse(e);
-            }
-            @Override
-           public void mouseDragged(MouseEvent e) {
-               handleMouse(e);
-           }
-        };
-        KeyAdapter kl = new KeyAdapter() { // handle mode switching
-            public void keyPressed(KeyEvent e) {
-                switch(e.getKeyCode()) {
-                    case KeyEvent.VK_W: // insert mode (insert/delete nodes)
-                        opMode = Mode.INSERT;
-                        break;
-                    case KeyEvent.VK_E:// edge mode (adding edges)
-                        opMode = Mode.EDGE;
-                        break;
-                    case KeyEvent.VK_R:// running the program
-                        opMode = Mode.VIEW;
-                        break;
-                    case KeyEvent.VK_ENTER: // running dijsktra
-                        if(ready) runDijsktra(source, dest);
-                        System.out.println("hello");
-                        break;
-                 }
-                jLabel1.setText("" + opMode);
-                
-            }
-           
-        };
-        this.addMouseListener(ml);
-        this.addKeyListener(kl);
+        
+        this.addMouseListener(new MouseHandler(this));
+        this.addKeyListener(new KeyHandler(this));
         this.setFocusable(true);
         
     }
@@ -113,13 +91,13 @@ public class GridPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
-    public void addNode(Node node) {
+    private void addNode(Node node) {
         nodes.add(node);
         repaint();
     }
-    public void addEdge(Node start, Node end) {
+    private void addEdge(Node start, Node end) {
         for(Edge e: edges) {
-            if(isAdjacent(start, e) && isAdjacent(end, e)) return;
+            if(isIncident(start, e) && isIncident(end, e)) return;
         } // checking if an edge already exists in-between the 
           // nodes
         
@@ -128,110 +106,143 @@ public class GridPanel extends javax.swing.JPanel {
         
         repaint(); // redraw the screen
     }
-    public void removeNode(int x, int y) {
+    private void removeNode(int x, int y) {
         Node n = getNode(x, y);
         edges.removeIf(edge -> edge.source == n || edge.dest == n);
         if(n != null) nodes.remove(n);
         repaint();
     }
+// --------------------------Left Click Methods---------------------------------
+    private void handleAddEdge(int x, int y) {
+        Node clickedNode = getNode(x, y);
+        if (clickedNode != null && source == null) {
+            source = clickedNode;
+            source.selected = true; // Set selection state here
+            repaint();
+            return;
+        }
 
-    private void handleMouse(MouseEvent e) {
-        int rawX = e.getX();
-        int rawY = e.getY();
-        
-        int snappedX = (rawX / cellSize) * cellSize;
-        int snappedY = (rawY / cellSize) * cellSize;
-        if(SwingUtilities.isLeftMouseButton(e)) {
-            if(opMode == Mode.INSERT){
-                if (getNode(rawX, rawY) == null) {
-                    Node n = new Node("" + nodes.size(), snappedX, snappedY);
-                    addNode(n);
-                }
-            } if(opMode == Mode.EDGE) {
-                Node clickedNode = getNode(rawX, rawY);
-                if (clickedNode != null && source == null) {
-                    source = clickedNode;
-                    source.selected = true; // Set selection state here
-                    repaint();
-                    return;
-                }
-                
-                dest = getNode(rawX, rawY);
-                if (dest != null && source != null && dest != source) {
-                    dest.selected = true;
-                    addEdge(source, dest);
+        dest = getNode(x, y);
+        if (dest != null && source != null && dest != source) {
+            dest.selected = true;
+            addEdge(source, dest);
 
-                    // Reset Selection
-                    source.selected = false;
-                    dest.selected = false;
-                    source = null;
-                    dest = null;
-                    repaint();
-                } else if (source != null) {
-                    // If we right click empty space, cancel the edge creation
-                    source.selected = false;
-                    source = null;
-                    repaint();
-                } 
-            } if (opMode == Mode.VIEW) {
-                // Selection of source node for the dijsktra algorithm
-                if(source == null) {
-                    source = getNode(rawX, rawY);
-                    if(source != null) source.selected = true;
-                } else if(source != null && dest == null) { 
-                    dest = getNode(rawX, rawY);
-                    if(dest == null) return;
-                    dest.selected = true;
-                    ready = true;
-                }
-                repaint();
-            }
-
-        } if(SwingUtilities.isRightMouseButton(e)) {
-            if(opMode == Mode.INSERT) {
-                removeNode(rawX, rawY);
-            } if(opMode == Mode.EDGE) {
-                Node clickedNode = getNode(rawX, rawY);
-                if (clickedNode != null && source == null) {
-                    source = clickedNode;
-                    source.selected = true; // Set selection state here
-                    repaint();
-                    return;
-                }
-                
-                dest = getNode(rawX, rawY); // set the destination node
-                if (dest != null && source != null && dest != source) {
-                    dest.selected = true;
-                    System.out.println("clicked node");
-                    edges.removeIf(edge -> isAdjacent(source, edge) 
-                            && isAdjacent(dest, edge));
-                    // Reset Selection
-                    source.selected = false;
-                    dest.selected = false;
-                    source = null;
-                    dest = null;
-                    repaint();
-                } else if (source != null) {
-                    // If we right click empty space, cancel the edge creation
-                    source.selected = false;
-                    source = null;
-                    repaint();
-                }
-            }if(opMode == Mode.VIEW) {
-                if(source != null) {
-                    source.selected = false;
-                    source = null;
-                } if(dest != null) {
-                    dest.selected = false;
-                    dest = null;
-                }
-                
-                if(paths != null) paths.clear();
-                repaint();
-            }
+            // Reset Selection
+            handleResetView();
+        } else if (source != null) {
+            // If we right click empty space, cancel the edge creation
+            source.selected = false;
+            source = null;
+        } 
+        repaint();
+    }
+    private void handleAddNode(int x, int y) {
+        int snappedX = (x / cellSize) * cellSize;
+        int snappedY = (y / cellSize) * cellSize;
+        if (getNode(x, y) == null) {
+            Node n = new Node("" + nodes.size(), snappedX, snappedY);
+            addNode(n);
         }
     }
-    public Node getNode(int x, int y) {
+    private void handleRunDijsktra(int x, int y) {
+        // Selection of source node for the dijsktra algorithm
+        if(ready) handleResetView();
+        Node clicked = getNode(x, y);
+        if(clicked == null) return;
+        if(source == null) {
+          source = clicked;
+          source.selected = true;
+        // Selection of destination node for the dijsktra algorithm   
+        } else if(dest == null) { 
+            dest = clicked;
+            dest.selected = true;
+            ready = true;
+        } 
+        
+        if(ready) runDijsktra(source, dest); // run the algorithm  
+        repaint();
+    }
+    // calculating the cost when using this node to traverse
+
+    
+    public void handleLeftClick(MouseEvent e) {
+        int rawX = e.getX();
+        int rawY = e.getY();
+
+        switch (opMode) {
+            case Mode.INSERT:
+                handleAddNode(rawX, rawY);
+                break;
+            case Mode.EDGE:
+                handleAddEdge(rawX, rawY);
+                break;
+            case Mode.VIEW:
+                handleRunDijsktra(rawX, rawY);
+                break;
+        }
+    }
+    
+    
+//    ------------------ Right Click Methods ---------------------------------
+    private void handleDeleteEdge(int x, int y) {
+        Node clickedNode = getNode(x, y);
+        if (clickedNode != null && source == null) {
+            source = clickedNode;
+            source.selected = true; // Set selection state here
+            repaint();
+            return;
+        }
+
+        dest = getNode(x, y); // set the destination node
+        if (dest != null && source != null && dest != source) {
+            dest.selected = true;
+            System.out.println("clicked node");
+            edges.removeIf(edge -> isIncident(source, edge) 
+                    && isIncident(dest, edge));
+            // Reset Selection
+            handleResetView();
+            repaint();
+        } else if (source != null) {
+            // If we right click empty space, cancel the edge creation
+            source.selected = false;
+            source = null;
+            repaint();
+        }
+    }
+    
+    private void handleResetView() {
+         if(source != null) {
+            source.selected = false;
+            source = null;
+        } if(dest != null) {
+            dest.selected = false;
+            dest = null;
+        }
+        ready = false;
+        if(paths != null) paths.clear();
+        repaint();
+    }
+    private void handleDeleteNode(int x, int y) {
+        removeNode(x, y);
+    }
+    
+    public void handleRightClick(MouseEvent e) {
+        int rawX = e.getX();
+        int rawY = e.getY();
+        switch(opMode) {
+            case Mode.INSERT:
+                handleDeleteNode(rawX, rawY);
+                break;
+            case Mode.EDGE:
+                handleDeleteEdge(rawX, rawY);
+                break;
+            case Mode.VIEW:
+                handleResetView();
+                break;
+        }
+    }
+//--------------------------------- Helper Functions -------------------------
+    private Node getNode(int x, int y) {
         for(int i = 0; i < nodes.size(); i++)  {
             Node node = nodes.get(i);
             // Pythagoras theorem for distance
@@ -246,64 +257,97 @@ public class GridPanel extends javax.swing.JPanel {
 
         return null;
     }  
-    public void runDijsktra(Node start, Node end) {
-        Dijsktra d = new Dijsktra(nodes, edges, paths);
-        d.dijsktra(start, end);
-        ready = false;
-        repaint();
-    }
-    public boolean isAdjacent(Node a, Edge e) {
+
+    private boolean isIncident(Node a, Edge e) {
         return e.source == a || e.dest == a;
     }
+    protected void changeMode(Mode op) {
+        this.opMode = op;
+        handleResetView();
+    }
+    private void runDijsktra(Node start, Node end) {
+        Dijsktra d = new Dijsktra(nodes, edges, paths);
+        d.dijsktra(start, end);
+        repaint();
+    }
+    public JLabel getLabel() {
+        return jLabel1;
+    }
+// -----------------------Rendering Helper Functions---------------------------
+    private void drawEdge(Graphics2D g2) {
+        for (Edge edge : edges) {
+            g2.setColor(paths.contains(edge) ? Color.green: Color.BLACK);
+            g2.setStroke(new BasicStroke(2));
+            g2.drawLine(edge.source.x,
+                    edge.source.y,
+                    edge.dest.x,
+                    edge.dest.y);
+            
+            // Draw Weight background so text is readable over lines
+            drawWeight(g2, edge);
+        }
+    }
+    private void drawWeight(Graphics2D g2, Edge edge) {
+        // get the midpoint
+        int lineMidX = (edge.source.x + edge.dest.x) / 2;
+        int lineMidY = (edge.source.y + edge.dest.y) / 2;
+        
+        // draw the text
+        g2.setColor(Color.WHITE);
+        g2.fillRect(lineMidX - 5, lineMidY - 10, 20, 15); 
+        g2.setColor(Color.BLACK);
+        g2.drawString("" + edge.weight, lineMidX, lineMidY);
+        //display the text
+    }
+    private void drawLabel(Node node, Graphics2D g2) {
+        // Center Text
+        FontMetrics fm = g2.getFontMetrics();
+        int textWidth = fm.stringWidth(node.id);
+        int textHeight = fm.getAscent();
+
+        g2.setColor(Color.WHITE);
+        // Precise centering logic
+        g2.drawString(node.id, 
+                node.x - (textWidth / 2), 
+                node.y + (textHeight / 2) - 2);
+    }
+    private void drawNode(Graphics2D g2) {
+        for (Node node : nodes) {
+            g2.setColor(node.selected ? Color.BLUE : Color.RED); 
+            // Ternary operator for color
+
+            // Fill circle
+            g2.fillOval(node.x - nodeRadius, 
+                    node.y - nodeRadius, 
+                    nodeRadius * 2, 
+                    nodeRadius * 2);
+
+            // Draw Border
+            g2.setColor(Color.BLACK);
+            g2.drawOval(node.x - nodeRadius,
+                    node.y - nodeRadius, 
+                    nodeRadius * 2, 
+                    nodeRadius * 2);
+            // draw label
+            drawLabel(node, g2);
+        }
+    }
+// ---------------------------------------Paint method-------------------------
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
 
         // Enable Anti-aliasing for smooth circles and lines
-        g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
-                            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-
-        
-
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                            RenderingHints.VALUE_ANTIALIAS_ON);
         // Draw Edges
-        for (Edge edge : edges) {
-            g2.setColor(paths.contains(edge) ? Color.green: Color.BLACK);
-            g2.setStroke(new BasicStroke(2));
-            g2.drawLine(edge.source.x, edge.source.y, edge.dest.x, edge.dest.y);
-            
-            // Draw Weight background so text is readable over lines
-            int lineMidX = (edge.source.x + edge.dest.x) / 2;
-            int lineMidY = (edge.source.y + edge.dest.y) / 2;
-            g2.setColor(Color.WHITE);
-            g2.fillRect(lineMidX - 5, lineMidY - 10, 20, 15); 
-            g2.setColor(Color.BLACK);
-            g2.drawString("" + edge.weight, lineMidX, lineMidY);
-        }
-
+        drawEdge(g2);
         // Draw Nodes
-        for (Node node : nodes) {
-            g2.setColor(node.selected ? Color.BLUE : Color.RED); // Ternary operator for color
-
-            // Fill circle
-            g2.fillOval(node.x - nodeRadius, node.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
-
-            // Draw Border
-            g2.setColor(Color.BLACK);
-            g2.drawOval(node.x - nodeRadius, node.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
-
-            // Center Text
-            FontMetrics fm = g2.getFontMetrics();
-            int textWidth = fm.stringWidth(node.id);
-            int textHeight = fm.getAscent();
-
-            g2.setColor(Color.WHITE);
-            // Precise centering logic
-            g2.drawString(node.id, node.x - (textWidth / 2), node.y + (textHeight / 2) - 2);
-        }
+        drawNode(g2);
         
     }
-
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables

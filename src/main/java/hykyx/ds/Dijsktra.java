@@ -36,20 +36,26 @@ public class Dijsktra {
 
 
             start.minDist = 0; // starting node has distance 0
-            Heap<Node> pq = new Heap<Node>((a, b) -> { // min heap implementation
+            Heap<Node> pq = new Heap<Node>((a, b) -> {
+                // min heap implementation
                 return b.minDist - a.minDist;
             });
 
-            pq.insert(start);
+            pq.insert(start); // insert the initial node
             while (!pq.isEmpty()) {
                 Node u = pq.pop();
-                System.out.println(u.id);
-                if(u == end) break;
+                if(u == end) break; // return if the destination is reached
                 for(Edge e : outboundEdge(u)) {
-                    Node v = e.dest;
+                    Node v = e.dest; // check the neighbors of the current node
                     if(v == u) v = e.source;
-
+                    // if the destination is the source
+                    
+                    // calculating the cost when using this node to traverse
                     int distPassingU = u.minDist + e.weight;
+                    
+                    
+                    // if the cost is less than the current minimum distance
+                    // use the path for the traversal
                     if(distPassingU < v.minDist) {
                         pq.remove(v);
                         v.minDist = distPassingU;                       
@@ -62,6 +68,9 @@ public class Dijsktra {
         reconstructPath(end);   
     }
     private List<Edge> outboundEdge(Node n) {
+        // method for finding all the incident edges
+        
+        
         List<Edge> result = new ArrayList<>();
         for (Edge e: edges ) {
             if (e.source == n || e.dest == n) result.add(e); 
@@ -70,9 +79,12 @@ public class Dijsktra {
         return result;
     }
     public void reconstructPath(Node target) {
+        // return the minimum path to get to the distination
         Node current = target;
         while(current.previous != null) {
             Edge pathEdge = getEdge(current, current.previous);
+            // path traversal
+            
             if(pathEdge != null) {
                 paths.add(pathEdge);
             }
@@ -81,7 +93,10 @@ public class Dijsktra {
     }
     private Edge getEdge(Node src, Node dest) {
         for (Edge e : edges) {
-            if ((e.source == src || e.dest == src) && (e.dest == dest || e.source == dest)) return e;
+            if ((e.source == src || e.dest == src) 
+                    && (e.dest == dest || e.source == dest)) return e;
+            // getting the edge of the current node where the destination
+            // and the source match
         }
         return null;
     }
