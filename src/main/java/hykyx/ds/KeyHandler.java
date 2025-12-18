@@ -27,7 +27,10 @@ public class KeyHandler extends KeyAdapter {
             case KeyEvent.VK_R:// running the program
                 gp.changeMode(Mode.VIEW);
                 break;
+            case KeyEvent.VK_Q:
+                gp.changeMode(Mode.STEP);
+                break;
          }
-        gp.getLabel().setText("" + gp.opMode);
+        
     };  
 }

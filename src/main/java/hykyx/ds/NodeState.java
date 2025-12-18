@@ -1,6 +1,6 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Enum.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package hykyx.ds;
 
@@ -8,6 +8,6 @@ package hykyx.ds;
  *
  * @author Franklin Xam
  */
-public enum Mode {
-    INSERT, EDGE, VIEW, STEP
+public enum NodeState {
+    UNVISITED, CLOSED, OPEN, PATH
 }

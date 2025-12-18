@@ -16,8 +16,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
+import java.awt.Font;
 import java.awt.RenderingHints;
+import javax.swing.JOptionPane;
 /**
  *
  * @author Franklin Xam
@@ -32,11 +33,12 @@ public class GridPanel extends javax.swing.JPanel {
             
             
     // constants
-    private final int nodeRadius = 20;
+    private final int nodeRadius = 25;
     private final int cellSize = 5;
-
+    private final Font nodeFont = new java.awt.Font("SansSerif", Font.BOLD, 18);
+    private final Font edgeFont = new java.awt.Font("SansSerif", Font.BOLD, 14);
     private final Random rnd = new Random();
-    
+    private final Dijkstra d = new Dijkstra(nodes, edges, paths, this);
     
     // operation variables
     protected Mode opMode = Mode.VIEW;
@@ -69,28 +71,86 @@ public class GridPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
 
         setMinimumSize(new java.awt.Dimension(760, 435));
 
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 48)); // NOI18N
         jLabel1.setText("jLabel1");
+
+        jButton1.setText("Tutorial");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel2.setText("Min cost to node ");
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel3.setText("None");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(708, Short.MAX_VALUE)
-                .addComponent(jLabel1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 389, Short.MAX_VALUE)
+                        .addComponent(jButton1)))
                 .addGap(15, 15, 15))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(413, Short.MAX_VALUE)
+                .addGap(15, 15, 15)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 315, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        JOptionPane.showMessageDialog(this,
+                ""
+                + "Controls: "
+                + "\n\n[W] = Insert mode"
+                + "\n [E] = Edge mode"
+                + "\n [R] = Insert "
+                        + "\nINSERT MODE \nallows for the addition "
+                        + "and removal of nodes"
+                        + "\nEDGE MODE \nallows for the addition and "
+                        + "removal of edges"
+                        + "\nVIEW MODE \nallows for the Dijsktra algorithm "
+                        + "execution\n\n"
+                        + "LEFT MOUSE FUNCTIONS:\n"
+                        + "\nINSERT MODE: adds node in the position of the mouse"
+                        + "\nEDGE MODE: adds connection when two nodes are chosen"
+                        + "\nVIEW MODE: performs Dijsktra's algorithm when two nodes"
+                        + " are chosen"
+                        + "\n\nRIGTH MOUSE FUNCTIONS:\n"
+                        + "\nINSERT MODE: removes node when right mouse is clicked"
+                        + "\nEDGE MODE: removes connection when two nodes"
+                        + " are chosen"
+                        + "\nVIEW MODE: resets the view (removes selection)" );
+        this.requestFocus();
+    }//GEN-LAST:event_jButton1ActionPerformed
     private void addNode(Node node) {
         nodes.add(node);
         repaint();
@@ -117,21 +177,18 @@ public class GridPanel extends javax.swing.JPanel {
         Node clickedNode = getNode(x, y);
         if (clickedNode != null && source == null) {
             source = clickedNode;
-            source.selected = true; // Set selection state here
             repaint();
             return;
         }
 
         dest = getNode(x, y);
         if (dest != null && source != null && dest != source) {
-            dest.selected = true;
             addEdge(source, dest);
 
             // Reset Selection
             handleResetView();
         } else if (source != null) {
             // If we right click empty space, cancel the edge creation
-            source.selected = false;
             source = null;
         } 
         repaint();
@@ -140,27 +197,19 @@ public class GridPanel extends javax.swing.JPanel {
         int snappedX = (x / cellSize) * cellSize;
         int snappedY = (y / cellSize) * cellSize;
         if (getNode(x, y) == null) {
-            Node n = new Node("" + nodes.size(), snappedX, snappedY);
+            Node n = new Node("" + getNextAvailableId(), 
+                    snappedX, snappedY);
             addNode(n);
         }
     }
+    private void handleStepping(int x, int y) {
+        prepare(x, y);
+        if(ready) startSteps(source, dest);
+    }
     private void handleRunDijsktra(int x, int y) {
         // Selection of source node for the dijsktra algorithm
-        if(ready) handleResetView();
-        Node clicked = getNode(x, y);
-        if(clicked == null) return;
-        if(source == null) {
-          source = clicked;
-          source.selected = true;
-        // Selection of destination node for the dijsktra algorithm   
-        } else if(dest == null) { 
-            dest = clicked;
-            dest.selected = true;
-            ready = true;
-        } 
-        
+        prepare(x, y);
         if(ready) runDijsktra(source, dest); // run the algorithm  
-        repaint();
     }
     // calculating the cost when using this node to traverse
 
@@ -175,52 +224,80 @@ public class GridPanel extends javax.swing.JPanel {
                 break;
             case Mode.EDGE:
                 handleAddEdge(rawX, rawY);
+                editEdgeWeight(rawX, rawY);
                 break;
             case Mode.VIEW:
                 handleRunDijsktra(rawX, rawY);
                 break;
+            case Mode.STEP:
+                handleStepping(rawX, rawY);
+                break;
         }
     }
-    
+    private boolean editEdgeWeight(int mouseX, int mouseY) {
+        for (Edge edge : edges) {
+            // Calculate the center of the edge
+            int midX = (edge.source.x + edge.dest.x) / 2;
+            int midY = (edge.source.y + edge.dest.y) / 2;
+
+            // Calculate distance from mouse click to the center
+            double dx = mouseX - midX;
+            double dy = mouseY - midY;
+
+            // If clicked within 15 pixels of the center number
+            // 15 * 15 = 225
+            if ((dx * dx + dy * dy) < 225) {
+
+                String input = JOptionPane.showInputDialog(this,
+                        "Enter new weight:", 
+                        edge.weight);
+
+                if (input != null && !input.isEmpty()) {
+                    try {
+                        edge.weight = Integer.parseInt(input);
+                        repaint(); // Redraw immediately
+                    } catch (NumberFormatException ex) {
+                    }
+                }
+                return true; // We handled the click
+            }
+        }
+        return false; // No weight was clicked
+    }
     
 //    ------------------ Right Click Methods ---------------------------------
     private void handleDeleteEdge(int x, int y) {
         Node clickedNode = getNode(x, y);
         if (clickedNode != null && source == null) {
             source = clickedNode;
-            source.selected = true; // Set selection state here
             repaint();
             return;
         }
 
         dest = getNode(x, y); // set the destination node
         if (dest != null && source != null && dest != source) {
-            dest.selected = true;
             System.out.println("clicked node");
             edges.removeIf(edge -> isIncident(source, edge) 
                     && isIncident(dest, edge));
             // Reset Selection
             handleResetView();
-            repaint();
         } else if (source != null) {
             // If we right click empty space, cancel the edge creation
-            source.selected = false;
             source = null;
-            repaint();
         }
+        repaint();
     }
     
     private void handleResetView() {
          if(source != null) {
-            source.selected = false;
             source = null;
         } if(dest != null) {
-            dest.selected = false;
             dest = null;
         }
         ready = false;
+        jLabel3.setText("None");
         if(paths != null) paths.clear();
-        repaint();
+        d.reset();
     }
     private void handleDeleteNode(int x, int y) {
         removeNode(x, y);
@@ -242,6 +319,25 @@ public class GridPanel extends javax.swing.JPanel {
         }
     }
 //--------------------------------- Helper Functions -------------------------
+   private String getNextAvailableId() {
+        // Collect all currently used IDs into a Set for fast lookup
+        Set<String> usedIds = new HashSet<>();
+        for (Node n : nodes) {
+            usedIds.add(n.id);
+        }
+
+        // Start counting from 0 and find the first number NOT in the set
+        int i = 0;
+        while (true) {
+            String candidate = String.valueOf(i);
+            if (!usedIds.contains(candidate)) {
+                return candidate; // Found a gap! 
+                //(e.g., if 0, 2 exist, this returns "1")
+            }
+            i++;
+        }
+    }
+
     private Node getNode(int x, int y) {
         for(int i = 0; i < nodes.size(); i++)  {
             Node node = nodes.get(i);
@@ -257,22 +353,39 @@ public class GridPanel extends javax.swing.JPanel {
 
         return null;
     }  
-
+    private void prepare(int x, int y) {
+        if(ready) handleResetView();
+        Node clicked = getNode(x, y);
+        if(clicked == null) return ;
+        if(source == null) {
+          source = clicked;
+        // Selection of destination node for the dijsktra algorithm   
+        } else if(dest == null) { 
+            dest = clicked;
+            ready = true;
+        } 
+    }
     private boolean isIncident(Node a, Edge e) {
         return e.source == a || e.dest == a;
     }
     protected void changeMode(Mode op) {
         this.opMode = op;
         handleResetView();
+        jLabel1.setText("" + opMode);
     }
-    private void runDijsktra(Node start, Node end) {
-        Dijsktra d = new Dijsktra(nodes, edges, paths);
-        d.dijsktra(start, end);
+    private void startSteps(Node start, Node end) {
+        d.stepByStep(start, end);
+        jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
+        "Inf" :  "" +end.minDist);
         repaint();
     }
-    public JLabel getLabel() {
-        return jLabel1;
+    private void runDijsktra(Node start, Node end) {
+        d.dijsktra(start, end);
+        jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
+                "Inf" :  "" +end.minDist);
+        repaint();
     }
+
 // -----------------------Rendering Helper Functions---------------------------
     private void drawEdge(Graphics2D g2) {
         for (Edge edge : edges) {
@@ -282,7 +395,6 @@ public class GridPanel extends javax.swing.JPanel {
                     edge.source.y,
                     edge.dest.x,
                     edge.dest.y);
-            
             // Draw Weight background so text is readable over lines
             drawWeight(g2, edge);
         }
@@ -294,6 +406,7 @@ public class GridPanel extends javax.swing.JPanel {
         
         // draw the text
         g2.setColor(Color.WHITE);
+        g2.setFont(edgeFont);
         g2.fillRect(lineMidX - 5, lineMidY - 10, 20, 15); 
         g2.setColor(Color.BLACK);
         g2.drawString("" + edge.weight, lineMidX, lineMidY);
@@ -306,16 +419,20 @@ public class GridPanel extends javax.swing.JPanel {
         int textHeight = fm.getAscent();
 
         g2.setColor(Color.WHITE);
+        g2.setFont(nodeFont);
         // Precise centering logic
         g2.drawString(node.id, 
                 node.x - (textWidth / 2), 
                 node.y + (textHeight / 2) - 2);
+        g2.setColor(Color.BLACK);
+        g2.drawString(node.minDist == Integer.MAX_VALUE ? "INFINITY" :
+                ""+node.minDist, node.x + nodeRadius, node.y - nodeRadius);
     }
     private void drawNode(Graphics2D g2) {
         for (Node node : nodes) {
-            g2.setColor(node.selected ? Color.BLUE : Color.RED); 
+            setColor(g2, node);
             // Ternary operator for color
-
+            
             // Fill circle
             g2.fillOval(node.x - nodeRadius, 
                     node.y - nodeRadius, 
@@ -331,6 +448,14 @@ public class GridPanel extends javax.swing.JPanel {
             // draw label
             drawLabel(node, g2);
         }
+    }
+    public void setColor(Graphics2D g2, Node node) {
+        if (node.state == NodeState.PATH) g2.setColor(Color.GREEN);
+        else if (node.state == NodeState.CLOSED) g2.setColor(Color.LIGHT_GRAY);
+        else if (node.state == NodeState.OPEN) g2.setColor(Color.ORANGE);
+        else if (node == source) g2.setColor(Color.CYAN); 
+        else if (node == dest) g2.setColor(Color.MAGENTA);
+        else g2.setColor(Color.RED); // Default/Unvisited
     }
 // ---------------------------------------Paint method-------------------------
     @Override
@@ -349,6 +474,9 @@ public class GridPanel extends javax.swing.JPanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     // End of variables declaration//GEN-END:variables
 }

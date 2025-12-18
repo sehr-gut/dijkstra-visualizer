@@ -20,4 +20,7 @@ public class Edge {
         this.dest = destination;
         this.weight = weight;
     }
+    public String toString() {
+        return source.toString() + "," + weight + ","  + dest.toString();
+    }
 }
