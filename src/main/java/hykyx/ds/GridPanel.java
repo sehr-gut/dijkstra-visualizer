@@ -33,7 +33,7 @@ public class GridPanel extends javax.swing.JPanel {
             
             
     // constants
-    private final int nodeRadius = 5;
+    private final int nodeRadius = 25;
     private final int cellSize = 5;
     private final Font nodeFont = new Font("SansSerif", Font.BOLD, 18);
     private final Font edgeFont = new Font("SansSerif", Font.BOLD, 14);
