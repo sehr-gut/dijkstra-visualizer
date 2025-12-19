@@ -39,8 +39,6 @@ public class Dijkstra {
         reset();
         /* Reset sequence end */
         isRunning = true;
-        f.setVisible(true);
-
         start.minDist = 0; // starting node has distance 0
         Heap<Node> pq = new Heap<Node>((a, b) -> {
             // min heap implementation
@@ -51,11 +49,15 @@ public class Dijkstra {
         while (!pq.isEmpty()) {
             step(pq, end);
         }
+        f.setVisible(true);
     }
 
-    public void stepByStep(Node start, Node end) { // step by step mode
+    public void stepByStep(Node start, Node end, Runnable onFinish) {
+        // step by step mode
         // reset config
         reset();
+        
+        // show table 
         f.setVisible(true);
         isRunning = true;
         start.minDist = 0; // starting node has distance 0
@@ -67,14 +69,17 @@ public class Dijkstra {
         pq.insert(start); // insert the initial node
         Timer t = new Timer(600, null);
         t.addActionListener(e -> {
-            if (pq.isEmpty()) {
+            if (pq.isEmpty()) { // handle unreachable nodes (not connected)
                 t.stop();
                 isRunning = false;
                 return;
             }
-            step(pq, end);
-            if(!isRunning) {
+            step(pq, end); // call the step function per 600 ms
+            f.updateTable(nodes, u); // display table updates
+            parent.repaint(); // repaint the display (visualization purposes)
+            if(!isRunning) { // handle if the taask is finished
                 t.stop();
+                if(onFinish != null) onFinish.run();
             }
         });
         t.start();
@@ -101,7 +106,6 @@ public class Dijkstra {
             // return if the destination is reached
             isRunning = false;
             reconstructPath(end);  
-            parent.repaint();
             return;
         }
         for(Edge e : outboundEdge(u)) {
@@ -110,6 +114,7 @@ public class Dijkstra {
             // if the destination is the source
             if(v.state == NodeState.CLOSED) continue;
             // calculating the cost when using this node to traverse
+            if (u.minDist == Integer.MAX_VALUE) continue;
             int distPassingU = u.minDist + e.weight;
 
 
@@ -124,8 +129,6 @@ public class Dijkstra {
             }
             
         }
-        f.updateTable(nodes, u);
-        parent.repaint();
     }
     private List<Edge> outboundEdge(Node n) {
         // method for finding all the incident edges

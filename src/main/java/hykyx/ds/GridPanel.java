@@ -35,10 +35,11 @@ public class GridPanel extends javax.swing.JPanel {
     // constants
     private final int nodeRadius = 25;
     private final int cellSize = 5;
-    private final Font nodeFont = new java.awt.Font("SansSerif", Font.BOLD, 18);
-    private final Font edgeFont = new java.awt.Font("SansSerif", Font.BOLD, 14);
+    private final Font nodeFont = new Font("SansSerif", Font.BOLD, 18);
+    private final Font edgeFont = new Font("SansSerif", Font.BOLD, 14);
     private final Random rnd = new Random();
     private final Dijkstra d = new Dijkstra(nodes, edges, paths, this);
+    private final RandomGraph g;
     
     // operation variables
     protected Mode opMode = Mode.VIEW;
@@ -52,6 +53,11 @@ public class GridPanel extends javax.swing.JPanel {
     public GridPanel() {
         initComponents();
         jLabel1.setText("" + opMode);
+        g = new RandomGraph
+                .Builder()
+                .edges(edges)
+                .nodes(nodes)
+                .rnd(rnd).build();
         
         this.addMouseListener(new MouseHandler(this));
         this.addKeyListener(new KeyHandler(this));
@@ -128,11 +134,13 @@ public class GridPanel extends javax.swing.JPanel {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         JOptionPane.showMessageDialog(this,
-                ""
-                + "Controls: "
-                + "\n\n[W] = Insert mode"
-                + "\n [E] = Edge mode"
-                + "\n [R] = Insert "
+                        ""
+                        + "Controls: "
+                        + "\n\n[W] = Insert mode"
+                        + "\n [E] = Edge mode"
+                        + "\n [R] = Insert"
+                        + "\n [G] = Create Random Graph"
+                        + "\n [Q] = Step by Step mode "
                         + "\nINSERT MODE \nallows for the addition "
                         + "and removal of nodes"
                         + "\nEDGE MODE \nallows for the addition and "
@@ -153,7 +161,6 @@ public class GridPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
     private void addNode(Node node) {
         nodes.add(node);
-        repaint();
     }
     private void addEdge(Node start, Node end) {
         for(Edge e: edges) {
@@ -164,20 +171,17 @@ public class GridPanel extends javax.swing.JPanel {
         edges.add(new Edge(start, end, 
                 rnd.nextInt(20)  + 1)); // create new node
         
-        repaint(); // redraw the screen
     }
     private void removeNode(int x, int y) {
         Node n = getNode(x, y);
         edges.removeIf(edge -> edge.source == n || edge.dest == n);
         if(n != null) nodes.remove(n);
-        repaint();
     }
 // --------------------------Left Click Methods---------------------------------
     private void handleAddEdge(int x, int y) {
         Node clickedNode = getNode(x, y);
         if (clickedNode != null && source == null) {
             source = clickedNode;
-            repaint();
             return;
         }
 
@@ -191,7 +195,6 @@ public class GridPanel extends javax.swing.JPanel {
             // If we right click empty space, cancel the edge creation
             source = null;
         } 
-        repaint();
     }
     private void handleAddNode(int x, int y) {
         int snappedX = (x / cellSize) * cellSize;
@@ -233,6 +236,7 @@ public class GridPanel extends javax.swing.JPanel {
                 handleStepping(rawX, rawY);
                 break;
         }
+        repaint();
     }
     private boolean editEdgeWeight(int mouseX, int mouseY) {
         for (Edge edge : edges) {
@@ -270,7 +274,6 @@ public class GridPanel extends javax.swing.JPanel {
         Node clickedNode = getNode(x, y);
         if (clickedNode != null && source == null) {
             source = clickedNode;
-            repaint();
             return;
         }
 
@@ -285,7 +288,6 @@ public class GridPanel extends javax.swing.JPanel {
             // If we right click empty space, cancel the edge creation
             source = null;
         }
-        repaint();
     }
     
     private void handleResetView() {
@@ -317,6 +319,8 @@ public class GridPanel extends javax.swing.JPanel {
                 handleResetView();
                 break;
         }
+        repaint();
+
     }
 //--------------------------------- Helper Functions -------------------------
    private String getNextAvailableId() {
@@ -337,7 +341,15 @@ public class GridPanel extends javax.swing.JPanel {
             i++;
         }
     }
-
+  protected void createRandomGraph(int n) {
+       // generating a random graph with n nodes
+       // within a W x H area
+       g.generate(n, this.getWidth(), this.getHeight());
+       if(paths != null) paths.clear();
+       
+       // redraw the screen;
+       repaint();
+   }
     private Node getNode(int x, int y) {
         for(int i = 0; i < nodes.size(); i++)  {
             Node node = nodes.get(i);
@@ -374,15 +386,17 @@ public class GridPanel extends javax.swing.JPanel {
         jLabel1.setText("" + opMode);
     }
     private void startSteps(Node start, Node end) {
-        d.stepByStep(start, end);
-        jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
-        "Inf" :  "" +end.minDist);
-        repaint();
+        d.stepByStep(start, end, () -> {
+            jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
+            "∞"  :  "" + end.minDist);
+            repaint();        
+        });
+
     }
     private void runDijsktra(Node start, Node end) {
         d.dijsktra(start, end);
         jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
-                "Inf" :  "" +end.minDist);
+               "∞"  :  "" +end.minDist);
         repaint();
     }
 
@@ -425,7 +439,7 @@ public class GridPanel extends javax.swing.JPanel {
                 node.x - (textWidth / 2), 
                 node.y + (textHeight / 2) - 2);
         g2.setColor(Color.BLACK);
-        g2.drawString(node.minDist == Integer.MAX_VALUE ? "INFINITY" :
+        g2.drawString(node.minDist == Integer.MAX_VALUE ? "∞"  :
                 ""+node.minDist, node.x + nodeRadius, node.y - nodeRadius);
     }
     private void drawNode(Graphics2D g2) {

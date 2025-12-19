@@ -6,6 +6,7 @@ package hykyx.ds;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -29,6 +30,17 @@ public class KeyHandler extends KeyAdapter {
                 break;
             case KeyEvent.VK_Q:
                 gp.changeMode(Mode.STEP);
+                break;
+            case KeyEvent.VK_G:
+                String input = JOptionPane.showInputDialog(null, "How many nodes?");
+                if (input != null && !input.isEmpty()) {
+                    try {
+                        int n = Integer.parseInt(input);
+                        gp.createRandomGraph(n);
+                    } catch (NumberFormatException ex) {
+                        System.out.println("Invalid number");
+                    }
+                }
                 break;
          }
         
