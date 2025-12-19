@@ -159,6 +159,7 @@ public class Dijkstra {
             current = current.previous;  
         }
         current.state = NodeState.PATH;
+        parent.repaint();
         f.updateTable(nodes, current);
     }
     private Edge getEdge(Node src, Node dest) {
