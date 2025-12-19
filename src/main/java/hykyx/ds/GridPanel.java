@@ -160,7 +160,7 @@ public class GridPanel extends javax.swing.JPanel {
                         + "\nINSERT MODE: removes node when right mouse is clicked"
                         + "\nEDGE MODE: removes connection when two nodes"
                         + " are chosen"
-                        + "\nVIEW MODE: resets the view (removes selection)" );
+                        + "\nVIEW MODE: resets the view (removes selection)", "Tutorial", JOptionPane.PLAIN_MESSAGE);
         this.requestFocus();
     }//GEN-LAST:event_jButton1ActionPerformed
     private void addNode(Node node) {
@@ -390,6 +390,7 @@ public class GridPanel extends javax.swing.JPanel {
         jLabel1.setText("" + opMode);
     }
     private void startSteps(Node start, Node end) {
+       jLabel2.setText("Min cost from " + start.id + " to " + end.id + ": ");
         d.stepByStep(start, end, () -> {
             jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
             "∞"  :  "" + end.minDist);
@@ -398,6 +399,7 @@ public class GridPanel extends javax.swing.JPanel {
 
     }
     private void runDijsktra(Node start, Node end) {
+        jLabel2.setText("Min cost from " + start.id + " to " + end.id + ": ");
         d.dijsktra(start, end);
         jLabel3.setText(end.minDist == Integer.MAX_VALUE ? 
                "∞"  :  "" +end.minDist);
