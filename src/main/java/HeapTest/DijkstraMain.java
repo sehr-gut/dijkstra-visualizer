@@ -14,9 +14,9 @@ import java.util.Set;
  */
 public class DijkstraMain {
     public static void main(String[] args) {
-        int numEdges = 1000000;
-        int numVertices = 1000000;
-        int maxWeight = 10000;
+        int numEdges = 1_000_000;
+        int numVertices = 1_000_000;
+        int maxWeight = 10_000;
         Graph randGraph = generate(numEdges, numVertices, maxWeight);
         System.out.println("Running Dijkstra from node 0");
         randGraph.dijsktra(0);
