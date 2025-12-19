@@ -6,6 +6,7 @@ package hykyx.priority_queue;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 
 /**
  *
@@ -14,6 +15,7 @@ import java.util.Comparator;
 public class Heap<T>{
     private ArrayList<T> heap;
     private Comparator<T> comp;
+    private final HashMap<T, Integer> mapping;
     public Heap(Comparator<T> b) {
         /*There are many ways to implement a Minimum Heap or a Priority Queue
           However, the most effective and Efficient implementataion is using 
@@ -22,6 +24,7 @@ public class Heap<T>{
         */
         comp = b;
         heap = new ArrayList<>();
+        mapping = new HashMap<>();
     }
     
     private int getParent(int i) {
@@ -43,28 +46,25 @@ public class Heap<T>{
     
     private void swap(int i, int j) {
         // essential method for the bubble up (or bubble down) during insertions
-        T temp = heap.get(i);
-        heap.set(i, heap.get(j));
-        heap.set(j, temp);      
+        T temp1 = heap.get(i);
+        T temp2 = heap.get(j);
+        heap.set(i, temp2);
+        heap.set(j, temp1);
+        
+        mapping.put(temp2, i);
+        mapping.put(temp1,j);
+        
     }
     
     public void insert(T val) {
         heap.add(val);
         int curr = heap.size() - 1;
+        mapping.put(val, curr);
         upShift(curr);
     }
-    public int getIndex(T target) {
-        if(!search(target)) return -1;
-        return heap.indexOf(target);
-    }
     public boolean search(T target) {
-        return search(0, target);
-    }
-    public boolean search(int i, T target) {
-        // simulation of a pre-order traversal
-        if(i >= heap.size()) return false;
-        if(heap.get(i).equals(target)) return true;
-        return search(i * 2 + 1, target) || search(i * 2 + 2, target);
+        // looking if the item exists in the heap
+        return mapping.containsKey(target);
     }
     
     public T pop() {
@@ -74,8 +74,12 @@ public class Heap<T>{
         T top = heap.get(0);
         int lastInd = heap.size() - 1;
         T last = heap.get(lastInd);
+        
+        mapping.remove(top);
+        
         if(lastInd > 0) {
             heap.set(0, last); 
+            mapping.put(last, 0);
             heap.remove(lastInd);
             downShift(0);
         } else {
@@ -85,13 +89,16 @@ public class Heap<T>{
     }
     public T remove(T target) {
         // find the index of the element to be removed
-        int index = getIndex(target);
-        if(index == -1) return null; // if not in heap
+        Integer index = mapping.get(target);
+        if(index == null) return null; // if not in heap
         
         T element = heap.get(index); 
         int lastInd = heap.size() - 1; 
         
-        if(index == lastInd) return heap.remove(index); 
+        if(index.equals(lastInd)){
+            mapping.remove(target);
+            return heap.remove(lastInd);
+        } 
         // if the element is in the end of the list
        
         
@@ -99,8 +106,11 @@ public class Heap<T>{
 
         T lastNode = heap.get(lastInd);
         heap.set(index, lastNode);
+        mapping.put(lastNode, index);
+            
         heap.remove(lastInd);
-        T parent = heap.get(getParent(index));
+        mapping.remove(target);
+        T parent = (index > 0) ? heap.get(getParent(index)) : null;
         
         // If only one element just pop it
         // if more than one, shift it down until heap invariance is achieved
@@ -164,3 +174,4 @@ public class Heap<T>{
         return heap.toString();
     }
 }
+
