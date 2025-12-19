@@ -5,6 +5,9 @@
 package HeapTest;
 
 import hykyx.priority_queue.Heap;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +55,16 @@ public class Graph {
         }
         System.out.println("Distance from source");
         for(int i = 0 ; i < n; i++) {
-            System.out.println(i + "\t\t" + distance[i]);
+            try{
+                writeToCSV(""+i, ""+distance[i]);
+            } catch (Exception e) {
+                
+            }
         }
+    }
+    public void writeToCSV(String node, String minCost) throws IOException {
+        FileWriter fw  = new FileWriter(new File("dijkstra.csv"), true);
+        fw.write(node + "," + minCost + "\n");
+        fw.close();
     }
 }
