@@ -15,11 +15,15 @@ public class Node {
     String id;
     int minDist = Integer.MAX_VALUE; // Dijsktra helper
     Node previous = null; // path reconstruction helper
-    boolean selected = false;
+    NodeState state = NodeState.UNVISITED; // visualization helper
     public Node( String id, int x, int y) {
         this.x = x;
         this.y = y;
         this.id = id;
+    }
+    @Override
+    public String toString() {
+        return x + "|" + y + "|" + id;
     }
     
 }
