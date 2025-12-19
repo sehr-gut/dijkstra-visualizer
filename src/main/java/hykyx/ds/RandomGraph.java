@@ -15,7 +15,7 @@ public class RandomGraph {
     private final List<Node> nodes;
     private final List<Edge> edges;
     private final Random rnd;
-    private final int NODE_RADIUS = 25;
+    private final int NODE_RADIUS = 5;
     private final int CELL_SIZE = 5;
     
     public RandomGraph(Builder builder){

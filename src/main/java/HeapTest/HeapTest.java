@@ -17,18 +17,18 @@ public class HeapTest {
         });
         
         Random rnd = new Random();
-        int n = 100000000;
+        int n = 50_000_000;
         int i = n;
 
         for(; i > 0; i--) {
             heap.insert(rnd.nextInt(n + (int)(n * .2)));
         }
         
-//        heap.search(10);
-//        heap.search(-1);
-//        
-//        while(!heap.isEmpty()) {
-//            heap.pop();
-//        }
+//        System.out.println(heap.search(10));
+//        System.out.println(heap.search(-1));
+        
+        while(!heap.isEmpty()) {
+            heap.pop();
+        }
     }
 }

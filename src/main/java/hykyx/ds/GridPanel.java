@@ -33,7 +33,7 @@ public class GridPanel extends javax.swing.JPanel {
             
             
     // constants
-    private final int nodeRadius = 25;
+    private final int nodeRadius = 5;
     private final int cellSize = 5;
     private final Font nodeFont = new Font("SansSerif", Font.BOLD, 18);
     private final Font edgeFont = new Font("SansSerif", Font.BOLD, 14);
@@ -94,7 +94,7 @@ public class GridPanel extends javax.swing.JPanel {
         });
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
-        jLabel2.setText("Min cost to node ");
+        jLabel2.setText("Min cost to node:");
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         jLabel3.setText("None");
@@ -113,7 +113,7 @@ public class GridPanel extends javax.swing.JPanel {
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 389, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 391, Short.MAX_VALUE)
                         .addComponent(jButton1)))
                 .addGap(15, 15, 15))
         );
@@ -136,12 +136,12 @@ public class GridPanel extends javax.swing.JPanel {
         JOptionPane.showMessageDialog(this,
                         ""
                         + "Controls: "
-                        + "\n\n[W] = Insert mode"
+                        + "\n[W] = Insert mode"
                         + "\n [E] = Edge mode"
                         + "\n [R] = Insert"
                         + "\n [G] = Create Random Graph"
                         + "\n [Q] = Step by Step mode "
-                        + "\nINSERT MODE \nallows for the addition"
+                        + "\n\nINSERT MODE \nallows for the addition"
                         + " and removal of nodes"
                         + "\nEDGE MODE \nallows for the addition and "
                         + "removal of edges"
@@ -149,14 +149,14 @@ public class GridPanel extends javax.swing.JPanel {
                         + " execution"
                         + "\nSTEP MODE\n allows for the Disjkstra's algorithm to run"
                         + " sequentially\n\n"
-                        + "LEFT MOUSE FUNCTIONS:\n"
+                        + "LEFT MOUSE FUNCTIONS:"
                         + "\nINSERT MODE: adds node in the position of the mouse"
                         + "\nEDGE MODE: adds connection when two nodes are chosen"
                         + "\nVIEW MODE: performs Dijkstra's algorithm when two nodes"
                         + " are chosen"
                         + "\nSTEP MODE: perform Dijkstra's algorithm"
-                        + "sequentially when two nodes are chosen"
-                        + "\n\nRIGHT MOUSE FUNCTIONS:\n"
+                        + " sequentially when two nodes are chosen"
+                        + "\n\nRIGHT MOUSE FUNCTIONS:"
                         + "\nINSERT MODE: removes node when right mouse is clicked"
                         + "\nEDGE MODE: removes connection when two nodes"
                         + " are chosen"
@@ -302,6 +302,7 @@ public class GridPanel extends javax.swing.JPanel {
         }
         ready = false;
         jLabel3.setText("None");
+        jLabel2.setText("Min cost to node: ");
         if(paths != null) paths.clear();
         d.reset();
     }
