@@ -30,5 +30,5 @@ Weight editing can be done by clicking the edge weight
   <img src="Recording 2026-05-17 060718.gif" style="max-width: 100%; height: auto;" width="500" alt="Animated Demo">
 </div>
 
-#Setup
+# Setup
 This project has a pre-packaged JRE so as simple as downloading the exe will be enough to run it.
