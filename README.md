@@ -1,6 +1,6 @@
 # PURPOSE
 This project was made to show how dikstra choose the shortest path in a undirected graph, the prograam was made using java.
-\
+
 ## Controls:
 [W] = Insert mode
 [E]= Edge mode [R] = Insert
@@ -26,3 +26,4 @@ Weight editing can be done by clicking the edge weight
 - EDGE MODE: removes connection when two nodes are chosen
 - VIEW MODE: resets the view (removes selection)
 
+<img src="Recording 2026-05-17 060718.gif" width="500" alt="Animated Demo">
